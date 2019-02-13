@@ -30,6 +30,7 @@
           (hsPkgs.cardano-prelude)
           (hsPkgs.cborg)
           (hsPkgs.containers)
+          (hsPkgs.concurrency)
           (hsPkgs.cryptonite)
           (hsPkgs.Cabal)
           (hsPkgs.directory)
@@ -46,6 +47,18 @@
           (hsPkgs.time)
           (hsPkgs.vector)
           ];
+        };
+      exes = {
+        "cardano-chain-validation-exe" = {
+          depends = [
+            (hsPkgs.base)
+            (hsPkgs.cardano-chain)
+            (hsPkgs.cardano-mainnet-mirror)
+            (hsPkgs.cardano-shell)
+            (hsPkgs.cardano-prelude)
+            (hsPkgs.formatting)
+            ];
+          };
         };
       tests = {
         "cardano-chain-test" = {
