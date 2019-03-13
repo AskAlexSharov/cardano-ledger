@@ -4,6 +4,7 @@
 module Cardano.Chain.Txp.UTxO
   ( UTxO
   , UTxOError
+  , empty
   , fromList
   , member
   , lookupAddress
@@ -16,7 +17,7 @@ module Cardano.Chain.Txp.UTxO
   )
 where
 
-import Cardano.Prelude
+import Cardano.Prelude hiding (empty)
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict as M
@@ -35,6 +36,9 @@ data UTxOError
   = UTxOMissingInput TxIn
   | UTxOOverlappingUnion
   deriving (Eq, Show)
+
+empty :: UTxO
+empty = UTxO mempty
 
 fromList :: [(TxIn, TxOut)] -> UTxO
 fromList = UTxO . M.fromList
