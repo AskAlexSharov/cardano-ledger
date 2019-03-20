@@ -86,16 +86,17 @@ data SigningHistory = SigningHistory
 
 checkDelegator :: BlockCount -> PublicKey -> SigningHistory -> Bool
 checkDelegator byzantineNodes s sh =
-  delegatorSlots % 1 <= shK sh % byzantineNodes
+  delegatorSlots <= fromIntegral (unBlockCount $ shK sh) % fromIntegral (unBlockCount byzantineNodes)
  where
+  delegatorSlots :: Ratio Integer
   delegatorSlots =
-    fromMaybe 0 $ M.lookup (mkStakeholderId s) (shStakeholderCounts sh)
+    maybe 0.0 (fromIntegral . unBlockCount) $ M.lookup (mkStakeholderId s) (shStakeholderCounts sh)
 
 -- | Update the `SigningHistory` with a new signer, removing the oldest value if
 --   the sequence is @K@ blocks long
 updateSigningHistory :: PublicKey -> SigningHistory -> SigningHistory
 updateSigningHistory pk sh
-  | length (shSigningQueue sh) < fromIntegral (shK sh) = sh & addStakeholderIn
+  | length (shSigningQueue sh) < fromIntegral (unBlockCount $ shK sh) = sh & addStakeholderIn
   | otherwise = sh & addStakeholderIn & removeStakeholderOut
  where
   stakeholderIn = mkStakeholderId pk
@@ -104,7 +105,7 @@ updateSigningHistory pk sh
   addStakeholderIn sh' = sh'
     { shSigningQueue      = stakeholderIn <| shSigningQueue sh'
     , shStakeholderCounts = M.adjust
-      (+ 1)
+      succ
       stakeholderIn
       (shStakeholderCounts sh')
     }
@@ -115,7 +116,7 @@ updateSigningHistory pk sh
     rest :|> stakeholderOut -> sh'
       { shSigningQueue      = rest
       , shStakeholderCounts = M.adjust
-        (subtract 1)
+        pred
         stakeholderOut
         (shStakeholderCounts sh')
       }
@@ -141,7 +142,7 @@ initialChainValidationState config = do
     { cvsSigningHistory  = SigningHistory
       { shK = configK config
       , shStakeholderCounts = M.fromList
-        . map (, 0)
+        . map (, BlockCount 0)
         . M.keys
         . getGenesisWStakeholders
         $ configBootStakeholders config
@@ -268,8 +269,7 @@ updateChain config cvs b = do
 
   -- Check that 'delegator' hasn't delegated too many previous blocks
   let
-    byzantineNodes :: BlockCount
-    byzantineNodes = 5
+    byzantineNodes = BlockCount 5
   checkDelegator byzantineNodes delegator signingHistory
     `orThrowError` ChainValidationTooManyDelegations delegator
 
