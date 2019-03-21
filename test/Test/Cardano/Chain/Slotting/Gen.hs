@@ -37,7 +37,6 @@ import Cardano.Chain.Slotting
   , SlottingData
   , unLocalSlotIndex
   , localSlotIndexMaxBound
-  , localSlotIndexMinBound
   , mkLocalSlotIndex
   , mkSlottingData
   , unsafeSlottingData
@@ -48,7 +47,7 @@ import Test.Cardano.Crypto.Gen (genProtocolMagicId)
 
 
 genEpochIndex :: Gen EpochIndex
-genEpochIndex = EpochIndex <$> Gen.word64 Range.constantBounded
+genEpochIndex = EpochIndex <$> Gen.word64 Range.linearBounded
 
 -- Generates a `EpochSlots` based on `LocalSlotIndex`
 genLsiEpochSlots :: Gen EpochSlots
@@ -66,9 +65,8 @@ genFlatSlotId = FlatSlotId <$> Gen.word64 Range.constantBounded
 
 genLocalSlotIndex :: EpochSlots -> Gen LocalSlotIndex
 genLocalSlotIndex epochSlots = mkLocalSlotIndex'
-  <$> Gen.word16 (Range.constant lb ub)
+  <$> Gen.word16 (Range.linear 0 ub)
  where
-  lb = unLocalSlotIndex localSlotIndexMinBound
   ub = unLocalSlotIndex (localSlotIndexMaxBound epochSlots)
   mkLocalSlotIndex' slot = case mkLocalSlotIndex epochSlots slot of
     Left err -> panic $ sformat

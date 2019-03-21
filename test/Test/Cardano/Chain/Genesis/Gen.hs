@@ -88,7 +88,7 @@ genCanonicalGenesisData pm =
  where
   genProtocolMagicUniform :: Gen ProtocolMagic
   genProtocolMagicUniform =
-    (ProtocolMagic <$> genProtocolMagicId <*> pure RequiresMagic)
+    ProtocolMagic <$> genProtocolMagicId <*> pure RequiresMagic
 
   genBlockCount' :: Gen BlockCount
   genBlockCount' = BlockCount <$> (Gen.word64 $ Range.linear 0 1000000000)
