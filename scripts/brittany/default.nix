@@ -1,14 +1,9 @@
-{ system ? builtins.currentSystem
-, config ? {}
-, pkgs ? import (import ../nix/fetch-nixpkgs.nix) { inherit system config; }
-}:
-
-with pkgs.lib;
+with import ../../lib.nix;
 with pkgs;
 
 writeScript "check-brittany" ''
   #!${stdenv.shell}
-  export PATH=${lib.makeBinPath [ findutils git haskellPackages.brittany ]}:$PATH
+  export PATH=${lib.makeBinPath [ findutils git haskell.packages.ghc844.brittany ]}:$PATH
 
   set -xe
 

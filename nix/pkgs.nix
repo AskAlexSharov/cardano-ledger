@@ -2,22 +2,11 @@
 , iohk-overlay ? {}
 , iohk-module ? {}
 , haskell
-, hackage
-, stackage
 , ...
 }:
 let
   # our packages
-  stack-pkgs = import ./.stack-pkgs.nix;
-
-  # packages which will require TH and thus
-  # will need -fexternal-interpreter treatment
-  # when cross compiling.
-  th-packages = [
-    "hedgehog" "cardano-crypto-wrapper"
-    "cardano-crypto-test" "cardano-ledger"
-    "small-steps" "cs-ledger" "cs-blockchain"
-  ];
+  stack-pkgs = import ./.stack.nix;
 
   # Build the packageset with module support.
   # We can essentially override anything in the modules
@@ -26,15 +15,14 @@ let
   #  packages.cbors.patches = [ ./one.patch ];
   #  packages.cbors.flags.optimize-gmp = false;
   #
-  compiler = (stack-pkgs.overlay hackage).compiler.nix-name;
-  pkgSet = haskell.mkNewPkgSet {
-    inherit pkgs;
-    pkg-def = stackage.${stack-pkgs.resolver};
+  compiler = (stack-pkgs.overlay {}).compiler.nix-name;
+  pkgSet = haskell.mkStackPkgSet {
+    inherit stack-pkgs;
     # The overlay allows extension or restriction of the set of
     # packages we are interested in. By using the stack-pkgs.overlay
     # we restrict our package set to the ones provided in stack.yaml.
-    pkg-def-overlays = [
-      stack-pkgs.overlay
+    pkg-def-extras = [
+      stack-pkgs.extras
       iohk-overlay.${compiler}
     ];
     # package customizations
@@ -52,9 +40,8 @@ let
       # work when cross compiling.  For now we need to
       # list the packages that require template haskell
       # explicity here.
-      (iohk-module { nixpkgs = pkgs;
-                     inherit th-packages; })
+      iohk-module
     ];
   };
 in
-  pkgSet.config.hsPkgs // { _config = pkgSet.config; }
+pkgSet.config.hsPkgs // { _config = pkgSet.config; }
