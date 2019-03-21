@@ -22,6 +22,7 @@ module Cardano.Chain.Block.Block
   , blockHash
   , blockHashAnnotated
   , blockPrevHash
+  , blockPrevHashGenesis
   , blockProof
   , blockSlot
   , blockLeaderKey
@@ -96,6 +97,7 @@ import Cardano.Chain.Block.Header
   , headerEBDataProof
   , headerLeaderKey
   , headerPrevHash
+  , headerPrevHashGenesis
   , headerProof
   , headerProtocolVersion
   , headerSignature
@@ -335,8 +337,11 @@ blockHashAnnotated = hashDecoded . fmap wrapHeaderBytes . blockHeader
 blockExtraData :: ABlock a -> ExtraBodyData
 blockExtraData = unAnnotated . aBlockExtraData
 
-blockPrevHash :: ABlock a -> HeaderHash
+blockPrevHash :: ABlock a -> Maybe HeaderHash
 blockPrevHash = headerPrevHash . blockHeader
+
+blockPrevHashGenesis :: ABlock a -> HeaderHash
+blockPrevHashGenesis = headerPrevHashGenesis . blockHeader
 
 blockProof :: ABlock a -> Proof
 blockProof = headerProof . blockHeader

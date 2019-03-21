@@ -32,7 +32,7 @@ import Cardano.Chain.Block.Block
   , blockDlgPayload
   , blockHashAnnotated
   , blockLeaderKey
-  , blockPrevHash
+  , blockPrevHashGenesis
   , blockSignature
   , blockSlot
   )
@@ -233,8 +233,8 @@ updateChain config cvs b = do
       fromMaybe (configGenesisHeaderHash config) (cvsPreviousHash cvs)
 
   -- Validate the previous block hash of 'b'
-  (blockPrevHash b == prevHash)
-    `orThrowError` ChainValidationInvalidHash prevHash (blockPrevHash b)
+  (blockPrevHashGenesis b == prevHash)
+    `orThrowError` ChainValidationInvalidHash prevHash (blockPrevHashGenesis b)
 
   -- Validate Signature
   (delegator, signer) <- case blockSignature b of

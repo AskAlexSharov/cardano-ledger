@@ -23,6 +23,7 @@ module Cardano.Chain.Slotting.SlotId
   , subSlotNumber
   , slotNumberEpoch
   , crucialSlot
+  , isZerothSlotId
   )
 where
 
@@ -74,6 +75,10 @@ makeLensesFor
     , ("siSlot" , "siSlotL")
     ]
     ''SlotId
+
+isZerothSlotId :: SlotId -> Bool
+isZerothSlotId sid =
+  siEpoch sid == EpochIndex 0 && siSlot sid == UnsafeLocalSlotIndex 0
 
 slotIdToEnum :: EpochSlots -> FlatSlotId -> SlotId
 slotIdToEnum = unflattenSlotId

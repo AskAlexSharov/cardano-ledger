@@ -14,6 +14,7 @@ module Cardano.Chain.Block.Header
   ( Header
   , AHeader
   , headerPrevHash
+  , headerPrevHashGenesis
   , headerProof
   , mkHeader
   , mkHeaderExplicit
@@ -87,7 +88,7 @@ import Cardano.Chain.Block.Proof (Proof(..), mkProof)
 import Cardano.Chain.Common (Attributes, ChainDifficulty (..))
 import qualified Cardano.Chain.Delegation.Certificate as Delegation
 import Cardano.Chain.Genesis.Hash (GenesisHash(..))
-import Cardano.Chain.Slotting (EpochIndex, SlotId(..), slotIdF)
+import Cardano.Chain.Slotting (EpochIndex, SlotId(..), slotIdF, isZerothSlotId)
 import Cardano.Chain.Update.ProtocolVersion (ProtocolVersion)
 import Cardano.Chain.Update.SoftwareVersion (SoftwareVersion)
 import Cardano.Crypto
@@ -130,8 +131,19 @@ data AHeader a = AHeader
   , headerAnnotation    :: a
   } deriving (Eq, Show, Generic, NFData, Functor)
 
-headerPrevHash :: AHeader a -> HeaderHash
-headerPrevHash = unAnnotated . aHeaderPrevHash
+-- | Return the 'HeaderHash' of the previous header if it exists.
+-- It will not exist for first main block in the chain.
+headerPrevHash :: AHeader a -> Maybe HeaderHash
+headerPrevHash hdr =
+  if isZerothSlotId (headerSlot hdr)
+    then Nothing
+    else Just $ headerPrevHashGenesis hdr
+
+-- | Return the 'HeaderHash' of the previous header. The the supplied header
+-- is the first main block in the chain, the `HeaderHash` with be the 'Hash'
+-- of the genesis data coerced to a 'HeaderHash'.
+headerPrevHashGenesis :: AHeader a -> HeaderHash
+headerPrevHashGenesis = unAnnotated . aHeaderPrevHash
 
 headerProof :: AHeader a -> Proof
 headerProof = unAnnotated . aHeaderProof
@@ -150,23 +162,21 @@ instance B.Buildable Header where
     . "    signature: " . build . "\n"
     . build
     )
-    headerHash
-    (headerPrevHash header)
+    (hashHeader header)
+    (headerPrevHashGenesis header)
     (consensusSlot consensus)
     (unChainDifficulty $ consensusDifficulty consensus)
     (consensusLeaderKey consensus)
     (consensusSignature consensus)
     (headerExtraData header)
    where
-    headerHash :: HeaderHash
-    headerHash = hashHeader header
     consensus  = headerConsensusData header
 
 instance Bi Header where
   encode h =
     encodeListLen 5
       <> encode (headerProtocolMagicId h)
-      <> encode (headerPrevHash h)
+      <> encode (headerPrevHashGenesis h)
       <> encode (headerProof h)
       <> encode (headerConsensusData h)
       <> encode (headerExtraData h)
@@ -279,7 +289,7 @@ headerEBDataProof = ehdEBDataProof . headerExtraData
 
 headerToSign :: AHeader a -> ToSign
 headerToSign h = ToSign
-  (headerPrevHash h)
+  (headerPrevHashGenesis h)
   (headerProof h)
   (headerSlot h)
   (headerDifficulty h)
@@ -449,7 +459,7 @@ recoverSignedBytes h = Annotated toSign bytes
     , (annotation . aHeaderExtraData) h
     ]
   toSign = ToSign
-    (headerPrevHash h)
+    (headerPrevHashGenesis h)
     (headerProof h)
     (headerSlot h)
     (headerDifficulty h)
