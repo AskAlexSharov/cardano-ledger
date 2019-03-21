@@ -3,7 +3,7 @@
     flags = { development = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "cardano-base-test"; version = "1.3.0"; };
+      identifier = { name = "cardano-binary-test"; version = "1.3.0"; };
       license = "MIT";
       copyright = "2019 IOHK";
       maintainer = "operations@iohk.io";
@@ -19,7 +19,7 @@
         depends = [
           (hsPkgs.base)
           (hsPkgs.bytestring)
-          (hsPkgs.cardano-base)
+          (hsPkgs.cardano-binary)
           (hsPkgs.cardano-prelude)
           (hsPkgs.cardano-prelude-test)
           (hsPkgs.cborg)
@@ -41,8 +41,8 @@
     } // {
     src = (pkgs.lib).mkDefault (pkgs.fetchgit {
       url = "https://github.com/input-output-hk/cardano-base";
-      rev = "bd978263ab884c4b27c940fcfe2d1ee8604afc5f";
-      sha256 = "1zng7f37a9cw9vi2kshyadakzmc1bcai5hj5x2309sj790q2ra54";
+      rev = "2f33cbf9101dfee1cb488271ec96e210329eec96";
+      sha256 = "0ar9pwf1ibbla60pns6dqcmc6wc705j4nqfd6752xbij8ra144mi";
       });
-    postUnpack = "sourceRoot+=/test; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/binary/test; echo source root reset to \$sourceRoot";
     }
